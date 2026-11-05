@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>הזמנת שווארמה</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F6F2EA; --card:#FFFFFF; --ink:#3B2E22; --muted:#8A7A69;
+    --line:#EADFCF; --accent:#E8930C; --accent-ink:#FFFFFF; --accent-soft:#FDF0DA;
+    --ok:#2F8F5B; --ok-soft:#E4F4EA; --err:#C2410C; --radius:16px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font-family:"Rubik",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
+       font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:560px;margin:0 auto;padding:20px 16px 120px}
+  .hero{padding:12px 4px 18px}
+  .hero .emoji{font-size:34px;line-height:1}
+  .hero h1{font-size:26px;font-weight:700;margin:10px 0 6px}
+  .hero p{margin:0;color:var(--muted)}
+  .card{background:var(--card);border-radius:var(--radius);padding:18px 16px;margin-bottom:14px;
+        box-shadow:0 1px 0 var(--line), 0 6px 18px rgba(59,46,34,.05)}
+  .card h2{font-size:17px;font-weight:600;margin:0 0 12px}
+  .seg{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .seg button{font:inherit;font-weight:600;padding:14px 10px;border-radius:12px;border:2px solid var(--line);
+              background:#fff;color:var(--ink);cursor:pointer}
+  .seg button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+  .summary .dish{font-size:19px;font-weight:600;margin-bottom:8px}
+  .summary .row{display:flex;gap:8px;padding:6px 0;border-top:1px dashed var(--line);font-size:15px}
+  .summary .row:first-of-type{border-top:0}
+  .summary .k{color:var(--muted);min-width:92px;flex-shrink:0}
+  .linkbtn{font:inherit;background:none;border:0;color:var(--accent);font-weight:600;padding:10px 0 0;cursor:pointer}
+  .tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin:0 -2px 12px;scrollbar-width:none}
+  .tabs::-webkit-scrollbar{display:none}
+  .tab{font:inherit;white-space:nowrap;padding:8px 14px;border-radius:999px;border:1px solid var(--line);
+       background:#fff;color:var(--ink);cursor:pointer;font-size:15px}
+  .tab[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .group{margin-top:18px}
+  .group:first-child{margin-top:0}
+  .ghead{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:8px}
+  .gtitle{font-weight:600}
+  .ghint{font-size:13px;color:var(--muted)}
+  .ghint.full{color:var(--accent);font-weight:600}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{font:inherit;font-size:15px;padding:9px 13px;border-radius:12px;border:1.5px solid var(--line);
+        background:#fff;color:var(--ink);cursor:pointer;transition:background .12s,border-color .12s}
+  .chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+  .chip[aria-pressed="true"]::before{content:"✓ ";font-weight:700}
+  .chip:disabled{opacity:.4;cursor:not-allowed}
+  .chip.dish{font-weight:500}
+  .sk-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+  .sk-row .lbl{min-width:58px;color:var(--muted);font-size:14px}
+  textarea{width:100%;min-height:84px;font:inherit;font-size:16px;padding:12px;border-radius:12px;
+           border:1.5px solid var(--line);background:#fff;color:var(--ink);resize:vertical}
+  textarea:focus,.chip:focus-visible,.seg button:focus-visible,.tab:focus-visible,.save:focus-visible{outline:3px solid #F7C77A;outline-offset:2px}
+  .err{color:var(--err);font-size:14px;margin-top:6px}
+  .legacy{background:var(--accent-soft);border-radius:12px;padding:10px 12px;font-size:14px;margin-bottom:12px}
+  .bar{position:fixed;inset:auto 0 0 0;background:linear-gradient(to top,var(--bg) 70%,rgba(246,242,234,0));
+       padding:18px 16px calc(16px + env(safe-area-inset-bottom))}
+  .bar .inner{max-width:560px;margin:0 auto}
+  .save{width:100%;font:inherit;font-size:18px;font-weight:700;padding:16px;border-radius:14px;border:0;
+        background:var(--accent);color:var(--accent-ink);cursor:pointer;box-shadow:0 8px 20px rgba(232,147,12,.3)}
+  .save:disabled{opacity:.6}
+  .done{text-align:center;padding:40px 8px}
+  .done .big{font-size:54px}
+  .done h1{font-size:24px;margin:12px 0 6px}
+  .done p{color:var(--muted);margin:0 0 18px}
+  .sig{text-align:center;color:var(--muted);font-size:14px;margin-top:26px}
+  .loading{text-align:center;padding:80px 8px;color:var(--muted)}
+  .loading .big{font-size:44px;animation:bob 1.2s ease-in-out infinite}
+  @keyframes bob{50%{transform:translateY(-6px)}}
+</style>
+</head>
+<body>
+<main class="wrap" id="app"><div class="loading"><div class="big">🥙</div><p>טוען את ההזמנה…</p></div></main>
+
+<script>
+/* כתובת ממשק הנתונים (Google Apps Script). הגיליון עצמו לא נגיש מכאן. */
+const API = 'https://script.google.com/macros/s/AKfycbwZfBFVyKAdVC4fnlfFF3tnUsD1uAMRyAj65jqgBLBKkdmmT4FfSZt2_NSRL5KU-oKAVQ/exec';
+const TOKEN = (new URLSearchParams(location.search).get('t') || '').trim();
+
+/* ---------- התפריט, לפי אתר המסעדה ---------- */
+const L = {
+  meat:   ['שווארמה פרגית','שווארמה הודו','שווארמה עגל'],
+  skewer: ['שיפוד פרגית','שיפוד קבב','שיפוד כבד עוף'],
+  bread:  ['פיתה','לאפה','באגט','לאפה ללא גלוטן'],
+  hot:    ['חומוס','סלט ירקות','חומוס טחינה','חומוס טחינה חריף',"צ'יפס",'אורז','אורז עם שעועית','שעועית'],
+  inside: ['חומוס','טחינה','חריף','עמבה','סלט ירקות','כרוב אדום במיונז','בצל','חציל במיונז','פטרוזיליה','ללא סלטים'],
+  sideS:  ['כרוב לבן','מלפפון חמוץ','טורשי','חציל מטוגן','שיפקה','גזר פיקנטי','פלפל מטוגן','בצל סומק','טחינה','עמבה','אותו סלט פעמיים','ללא סלטים בצד'],
+  sideP:  ['מלפפון חמוץ','טורשי','כרוב לבן','פלפל שיפקה','טחינה','עמבה','פלפל מטוגן','חציל מטוגן','גזר פיקנטי','בצל סומק','כרוב במיונז','חציל במיונז','סחוג','פטרוזיליה','ללא סלטים']
+};
+const G = {
+  meat:   {key:'meat',   title:'איזו שווארמה?',       min:1, max:3, items:L.meat, hint:'אפשר לשלב'},
+  sk1:    {key:'skewers',title:'איזה שיפוד?',          skewers:1, items:L.skewer},
+  sk2:    {key:'skewers',title:'אילו שיפודים?',        skewers:2, items:L.skewer},
+  bread:  {key:'bread',  title:'איזה לחם?',            single:true, min:1, items:L.bread},
+  hot:    {key:'hot',    title:'מה בחמגשית?',          min:0, max:3, items:L.hot},
+  inside: {key:'inside', title:'מה בפנים?',            min:1, max:6, items:L.inside, excl:['ללא סלטים']},
+  sideS:  {key:'side',   title:'סלטים בצד',            min:0, max:2, items:L.sideS, excl:['ללא סלטים בצד']},
+  sideP:  {key:'side',   title:'סלטים בצד',            min:0, max:3, items:L.sideP, excl:['ללא סלטים']},
+  chips:  {key:'chips',  title:"צ'יפס בצד?",           single:true, min:1, items:['כן','לא']}
+};
+const SAND = ['inside','sideS','chips'], TRAY = ['bread','hot','sideP'];
+const D = (cat, n, g) => ({cat, n, g});
+const DISHES = [
+  D('שווארמה','פיתה שווארמה',['meat',...SAND]),
+  D('שווארמה','חצי פיתה שווארמה',['meat',...SAND]),
+  D('שווארמה','לאפה שווארמה',['meat',...SAND]),
+  D('שווארמה','לאפה שווארמה - ללא גלוטן',['meat',...SAND]),
+  D('שווארמה','בגט שווארמה',['meat',...SAND]),
+  D('שווארמה','צלחת שווארמה',['meat',...TRAY]),
+  D('שיפודים','שיפוד בפיתה',['sk1',...SAND]),
+  D('שיפודים','שני שיפודים בפיתה',['sk2',...SAND]),
+  D('שיפודים','שיפוד בלאפה',['sk1',...SAND]),
+  D('שיפודים','שני שיפודים בלאפה',['sk2',...SAND]),
+  D('שיפודים','שיפוד בלאפה - ללא גלוטן',['sk1',...SAND]),
+  D('שיפודים','שני שיפודים בלאפה - ללא גלוטן',['sk2',...SAND]),
+  D('שיפודים','שיפוד בבאגט',['sk1',...SAND]),
+  D('שיפודים','שני שיפודים בבאגט',['sk2',...SAND]),
+  D('שיפודים','שיפוד בצלחת',['sk1',...TRAY]),
+  D('שיפודים','שני שיפודים בצלחת',['sk2',...TRAY]),
+  D('חזה עוף','חזה עוף בפיתה',SAND),
+  D('חזה עוף','חזה עוף בלאפה',SAND),
+  D('חזה עוף','חזה עוף בלאפה - ללא גלוטן',SAND),
+  D('חזה עוף','חזה עוף בבאגט',SAND),
+  D('חזה עוף','חזה עוף בצלחת',TRAY),
+  D('שניצל','שניצל בפיתה',SAND),
+  D('שניצל','שניצל בלאפה',SAND),
+  D('שניצל','שניצל בבאגט',SAND),
+  D('שניצל','שניצל בצלחת',TRAY),
+  D('פלאפל','פלאפל בפיתה',SAND),
+  D('פלאפל','פלאפל בלאפה',SAND),
+  D('פלאפל','פלאפל בבאגט',SAND),
+  D('פלאפל','פלאפל בצלחת',TRAY)
+];
+const CATS = [...new Set(DISHES.map(d => d.cat))];
+// "צלחת" באתר = חמגשית למשלוח
+const show = n => n.replace('צלחת שווארמה','חמגשית שווארמה').replace('בצלחת','בחמגשית');
+
+/* ---------- עזר ---------- */
+const h = (tag, attrs={}, ...kids) => {
+  const e = document.createElement(tag);
+  for (const [k,v] of Object.entries(attrs)) {
+    if (k === 'class') e.className = v;
+    else if (k.startsWith('on')) e.addEventListener(k.slice(2), v);
+    else if (v === true) e.setAttribute(k, '');
+    else if (v !== false && v != null) e.setAttribute(k, v);
+  }
+  kids.flat().forEach(c => e.append(c && c.nodeType ? c : document.createTextNode(c == null ? '' : c)));
+  return e;
+};
+const chip = (label, on, click, disabled, extra='') =>
+  h('button', {type:'button', class:'chip '+extra, 'aria-pressed': on ? 'true':'false', disabled, onclick:click}, label);
+const signature = () => h('div',{class:'sig'}, 'בתיאבון מראש 🌿', h('br'), 'אנבל, העוזרת האישית של שי אבני');
+
+function message(emoji, title, text){
+  const app = document.getElementById('app');
+  app.innerHTML = '';
+  app.append(h('div',{class:'done'}, h('div',{class:'big'},emoji), h('h1',{},title), h('p',{},text)), signature());
+  document.querySelector('.bar')?.remove();
+}
+
+/* ---------- טעינה ---------- */
+async function load(){
+  if (!/^[a-z0-9]{10}$/.test(TOKEN)) return message('🤔','הקישור לא תקין','כדאי לפתוח שוב את הקישור מהמייל.');
+  try {
+    const res = await fetch(API + '?api=1&t=' + encodeURIComponent(TOKEN), {redirect:'follow'});
+    const data = await res.json();
+    if (!data.ok) return message('🤔','הקישור לא תקין','כדאי לפתוח שוב את הקישור מהמייל.');
+    start(data);
+  } catch (e) {
+    message('😕','לא הצלחנו לטעון את ההזמנה','בדקו את החיבור לאינטרנט ונסו לרענן את הדף.');
+  }
+}
+
+function start(DATA){
+  const P = DATA.person || {};
+  const S = {
+    coming: !!P.coming,
+    dish: (DISHES.find(d => d.n === P.dish) || {}).n || '',
+    legacyDish: DISHES.some(d => d.n === P.dish) ? '' : (P.dish || ''),
+    meat: [...(P.meat||[])], skewers: [...(P.skewers||[])], bread: P.bread || '',
+    hot: [...(P.hot||[])], inside: [...(P.inside||[])], side: [...(P.side||[])],
+    chips: P.chips === 'לא' ? 'לא' : (P.chips === 'כן' ? 'כן' : ''),
+    note: P.note || '',
+    editing: false, cat: '', saving: false, saved: false, tried: false
+  };
+  S.cat = (DISHES.find(d => d.n === S.dish) || {}).cat || CATS[0];
+  if (!S.dish) S.editing = true;
+  // פריטים שהיו שמורים אבל לא מופיעים בתפריט – נשארים כאפשרות מסומנת (רק למנה המקורית)
+  const INIT_DISH = S.dish, extras = {};
+  const dishObj = () => DISHES.find(d => d.n === S.dish);
+  if (dishObj()) dishObj().g.forEach(gk => {
+    const g = G[gk]; if (g.skewers) return;
+    extras[gk] = [].concat(S[g.key] || []).filter(x => x && !g.items.includes(x) && x !== 'N/A');
+  });
+  function itemsOf(gk){
+    const base = G[gk].items.slice();
+    return S.dish === INIT_DISH ? base.concat(extras[gk] || []) : base;
+  }
+
+  function toggle(gk, item){
+    const g = G[gk]; let arr = S[g.key];
+    if (arr.includes(item)) arr = arr.filter(x => x !== item);
+    else {
+      if (g.excl && g.excl.includes(item)) arr = [item];
+      else { arr = arr.filter(x => !(g.excl||[]).includes(x)); if (arr.length < g.max) arr = arr.concat(item); }
+    }
+    S[g.key] = arr; render();
+  }
+
+  function chooseDish(n){
+    const old = dishObj(); S.dish = n; S.legacyDish = '';
+    const d = dishObj();
+    const keys = new Set(d.g.map(k => G[k].key));
+    ['meat','skewers','bread','hot','inside','side','chips'].forEach(k => { if (!keys.has(k)) S[k] = Array.isArray(S[k]) ? [] : ''; });
+    d.g.forEach(k => {
+      const g = G[k];
+      if (g.skewers) { S.skewers = S.skewers.slice(0, g.skewers); return; }
+      if (g.single) { if (!itemsOf(k).includes(S[g.key])) S[g.key] = g.key === 'chips' ? 'כן' : ''; return; }
+      S[g.key] = S[g.key].filter(x => itemsOf(k).includes(x)).slice(0, g.max);
+    });
+    if (old && old.n !== n) S.tried = false;
+    render();
+  }
+
+  function problems(){
+    const out = {};
+    if (!S.coming) return out;
+    const d = dishObj();
+    if (!d) { out.dish = 'בחרו מנה'; return out; }
+    d.g.forEach(k => {
+      const g = G[k];
+      if (g.skewers) { if (S.skewers.filter(Boolean).length < g.skewers) out[k] = g.skewers === 2 ? 'בחרו שני שיפודים' : 'בחרו שיפוד'; return; }
+      if (g.single) { if (!S[g.key]) out[k] = 'צריך לבחור אחד'; return; }
+      if (S[g.key].length < g.min) out[k] = 'צריך לבחור לפחות ' + g.min;
+    });
+    return out;
+  }
+
+  function summaryCard(){
+    const d = dishObj();
+    const rows = [];
+    const add = (k, v) => { if (v && (!Array.isArray(v) || v.length)) rows.push(h('div',{class:'row'}, h('span',{class:'k'},k), h('span',{}, Array.isArray(v)? v.join(', ') : v))); };
+    if (d) {
+      const keys = d.g.map(k => G[k].key);
+      if (keys.includes('meat')) add('שווארמה', S.meat);
+      if (keys.includes('skewers')) add('שיפודים', S.skewers);
+      if (keys.includes('bread')) add('לחם', S.bread);
+      if (keys.includes('hot')) add('בחמגשית', S.hot);
+      if (keys.includes('inside')) add('בפנים', S.inside);
+      add('בצד', S.side);
+      if (keys.includes('chips')) add("צ'יפס", S.chips);
+    }
+    return h('section',{class:'card summary'},
+      h('h2',{}, 'המנה שלי'),
+      h('div',{class:'dish'}, d ? show(d.n) : (S.legacyDish || 'עוד לא נבחרה מנה')),
+      rows,
+      h('button',{type:'button', class:'linkbtn', onclick:()=>{S.editing = true; render(); setTimeout(()=>document.getElementById('editor')?.scrollIntoView({behavior:'smooth',block:'start'}),50);}}, 'לשנות משהו ✏️')
+    );
+  }
+
+  function groupBlock(gk, errs){
+    const g = G[gk];
+    const box = h('div',{class:'group'});
+    if (g.skewers) {
+      box.append(h('div',{class:'ghead'}, h('span',{class:'gtitle'}, g.title)));
+      for (let i = 0; i < g.skewers; i++) {
+        const row = h('div',{class:'sk-row'}, g.skewers > 1 ? h('span',{class:'lbl'}, i ? 'שיפוד שני' : 'שיפוד ראשון') : '');
+        const chipsEl = h('div',{class:'chips'});
+        g.items.forEach(it => chipsEl.append(chip(it.replace('שיפוד ',''), S.skewers[i] === it, () => { const a = S.skewers.slice(); a[i] = it; S.skewers = a; render(); })));
+        row.append(chipsEl); box.append(row);
+      }
+    } else if (g.single) {
+      box.append(h('div',{class:'ghead'}, h('span',{class:'gtitle'}, g.title)));
+      const c = h('div',{class:'chips'});
+      itemsOf(gk).forEach(it => c.append(chip(it, S[g.key] === it, () => { S[g.key] = it; render(); })));
+      box.append(c);
+    } else {
+      const n = S[g.key].length, full = n >= g.max;
+      const hint = (g.hint ? g.hint + ' · ' : '') + (g.min ? 'לפחות ' + g.min + ', ' : '') + 'עד ' + g.max + ' (' + n + '/' + g.max + ')';
+      box.append(h('div',{class:'ghead'}, h('span',{class:'gtitle'}, g.title), h('span',{class:'ghint'+(full?' full':'')}, hint)));
+      const c = h('div',{class:'chips'});
+      itemsOf(gk).forEach(it => {
+        const on = S[g.key].includes(it);
+        const isEx = (g.excl||[]).includes(it);
+        c.append(chip(it, on, () => toggle(gk, it), !on && full && !isEx));
+      });
+      box.append(c);
+    }
+    if (S.tried && errs[gk]) box.append(h('div',{class:'err'}, errs[gk]));
+    return box;
+  }
+
+  function editorCard(errs){
+    const card = h('section',{class:'card', id:'editor'}, h('h2',{}, 'בחירת מנה'));
+    if (S.legacyDish) card.append(h('div',{class:'legacy'}, 'המנה הקבועה שלך רשומה אצלנו כך: "' + S.legacyDish + '". אפשר לבחור אותה מהרשימה, או להשאיר כמו שהיא.'));
+    const tabs = h('div',{class:'tabs', role:'tablist'});
+    CATS.forEach(c => tabs.append(h('button',{type:'button', class:'tab', 'aria-pressed': S.cat === c ? 'true':'false', onclick:()=>{S.cat = c; render();}}, c)));
+    card.append(tabs);
+    const dc = h('div',{class:'chips'});
+    DISHES.filter(d => d.cat === S.cat).forEach(d => dc.append(chip(show(d.n), S.dish === d.n, () => chooseDish(d.n), false, 'dish')));
+    card.append(dc);
+    if (S.tried && errs.dish && !S.legacyDish) card.append(h('div',{class:'err'}, errs.dish));
+    const d = dishObj();
+    if (d) {
+      const gwrap = h('div',{style:'margin-top:20px;border-top:1px solid var(--line);padding-top:18px'});
+      d.g.forEach(k => gwrap.append(groupBlock(k, errs)));
+      card.append(gwrap);
+    }
+    return card;
+  }
+
+  function render(){
+    const app = document.getElementById('app');
+    app.innerHTML = '';
+    if (S.saved) {
+      app.append(h('div',{class:'done'},
+        h('div',{class:'big'}, S.coming ? '🥙' : '👋'),
+        h('h1',{}, S.coming ? 'נשמר, תודה ' + P.name + '!' : 'קיבלנו, ' + P.name + '. נתראה בפעם הבאה!'),
+        h('p',{}, S.coming ? 'ההזמנה שלך תיכנס להזמנה המשפחתית. אפשר לחזור לקישור ולשנות עד שלישי ב-10:00.' : 'אם תתחרט/י, אפשר לחזור לקישור ולשנות עד שלישי ב-10:00.'),
+        h('button',{type:'button', class:'linkbtn', onclick:()=>{S.saved = false; render(); window.scrollTo(0,0);}}, 'חזרה להזמנה')
+      ), signature());
+      bar(false); return;
+    }
+    const errs = problems();
+    app.append(
+      h('header',{class:'hero'},
+        h('div',{class:'emoji'},'🥙'),
+        h('h1',{}, 'היי ' + P.name + ' 👋'),
+        h('p',{}, 'ההזמנה לארוחת הצהריים המשפחתית ביום שלישי. אפשר לשנות עד שלישי ב-10:00.')
+      ),
+      h('section',{class:'card'},
+        h('h2',{}, 'מצטרפים השבוע?'),
+        h('div',{class:'seg'},
+          h('button',{type:'button','aria-pressed': S.coming ? 'true':'false', onclick:()=>{S.coming = true; render();}}, 'כן, תזמינו לי 🙌'),
+          h('button',{type:'button','aria-pressed': !S.coming ? 'true':'false', onclick:()=>{S.coming = false; render();}}, 'לא הפעם')
+        )
+      )
+    );
+    if (S.coming) {
+      if (dishObj() || S.legacyDish) app.append(summaryCard());
+      if (S.editing) app.append(editorCard(errs));
+      const ta = h('textarea',{id:'note', placeholder:'למשל: בלי בצל, קצת יותר חריף…', maxlength:'300'});
+      ta.value = S.note; ta.addEventListener('input', e => S.note = e.target.value);
+      app.append(h('section',{class:'card'}, h('h2',{}, 'בקשה מיוחדת השבוע (לא חובה)'), ta));
+    }
+    app.append(signature());
+    bar(true);
+  }
+
+  function bar(showIt){
+    let b = document.querySelector('.bar');
+    if (!showIt) { b && b.remove(); return; }
+    if (!b) { b = h('div',{class:'bar'}, h('div',{class:'inner'})); document.body.append(b); }
+    const inner = b.firstChild; inner.innerHTML = '';
+    inner.append(h('button',{type:'button', class:'save', disabled: S.saving, onclick: save}, S.saving ? 'שומר…' : 'שמירה'));
+  }
+
+  async function save(){
+    S.tried = true;
+    const errs = problems();
+    const blocking = Object.keys(errs).filter(k => !(k === 'dish' && S.legacyDish));
+    if (S.coming && blocking.length) { S.editing = true; render(); document.querySelector('.err')?.scrollIntoView({behavior:'smooth', block:'center'}); return; }
+    const d = dishObj();
+    const keys = d ? new Set(d.g.map(k => G[k].key)) : null;
+    const pick = (k, v) => (!keys || keys.has(k)) ? v : (Array.isArray(v) ? [] : '');
+    const order = d ? {
+      coming: S.coming, dish: S.dish,
+      meat: pick('meat', S.meat), skewers: pick('skewers', S.skewers.filter(Boolean)), bread: pick('bread', S.bread),
+      hot: pick('hot', S.hot), inside: pick('inside', S.inside), side: S.side, chips: pick('chips', S.chips), note: S.note
+    } : {
+      coming: S.coming, dish: P.dish, meat: P.meat, skewers: P.skewers, bread: P.bread, hot: P.hot,
+      inside: P.inside, side: P.side, chips: P.chips, note: S.note
+    };
+    S.saving = true; bar(true);
+    try {
+      // text/plain כדי שהדפדפן לא ישלח בקשת preflight, ש-Apps Script לא תומך בה
+      const res = await fetch(API, {method:'POST', redirect:'follow', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify({t: DATA.token, order})});
+      const r = await res.json();
+      if (!r.ok) throw new Error(r.error || 'save failed');
+      S.saving = false; S.saved = true; render(); window.scrollTo(0,0);
+    } catch (e) {
+      S.saving = false; bar(true);
+      const inner = document.querySelector('.bar .inner');
+      inner && inner.prepend(h('div',{class:'err', style:'text-align:center;margin-bottom:8px'}, 'לא הצלחנו לשמור. נסו שוב בעוד רגע.'));
+    }
+  }
+
+  render();
+}
+
+load();
+</script>
+</body>
+</html>
