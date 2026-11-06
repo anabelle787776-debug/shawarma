@@ -30,6 +30,7 @@
   .seg button{font:inherit;font-weight:600;padding:14px 10px;border-radius:12px;border:2px solid var(--line);
               background:#fff;color:var(--ink);cursor:pointer}
   .seg button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+  .seg3{grid-template-columns:1fr}
   .summary .dish{font-size:19px;font-weight:600;margin-bottom:8px}
   .summary .row{display:flex;gap:8px;padding:6px 0;border-top:1px dashed var(--line);font-size:15px}
   .summary .row:first-of-type{border-top:0}
@@ -181,7 +182,7 @@ async function load(){
 function start(DATA){
   const P = DATA.person || {};
   const S = {
-    coming: !!P.coming,
+    coming: !!P.coming, noDish: !!P.noDish,
     dish: (DISHES.find(d => d.n === P.dish) || {}).n || '',
     legacyDish: DISHES.some(d => d.n === P.dish) ? '' : (P.dish || ''),
     meat: [...(P.meat||[])], skewers: [...(P.skewers||[])], bread: P.bread || '',
@@ -322,7 +323,7 @@ function start(DATA){
     if (S.saved) {
       app.append(h('div',{class:'done'},
         h('div',{class:'big'}, S.coming ? '🥙' : '👋'),
-        h('h1',{}, S.coming ? 'נשמר, תודה ' + P.name + '!' : 'קיבלנו, ' + P.name + '. נתראה בפעם הבאה!'),
+        h('h1',{}, S.coming ? 'נשמר, תודה ' + P.name + '!' : (S.noDish ? 'קיבלנו, ' + P.name + '. נתראה בארוחה!' : 'קיבלנו, ' + P.name + '. נתראה בפעם הבאה!')),
         h('p',{}, S.coming ? 'ההזמנה שלך תיכנס להזמנה המשפחתית. אפשר לחזור לקישור ולשנות עד שלישי ב-10:00.' : 'אם תתחרט/י, אפשר לחזור לקישור ולשנות עד שלישי ב-10:00.'),
         h('button',{type:'button', class:'linkbtn', onclick:()=>{S.saved = false; render(); window.scrollTo(0,0);}}, 'חזרה להזמנה')
       ), signature());
@@ -337,9 +338,10 @@ function start(DATA){
       ),
       h('section',{class:'card'},
         h('h2',{}, 'מצטרפים השבוע?'),
-        h('div',{class:'seg'},
-          h('button',{type:'button','aria-pressed': S.coming ? 'true':'false', onclick:()=>{S.coming = true; render();}}, 'כן, תזמינו לי 🙌'),
-          h('button',{type:'button','aria-pressed': !S.coming ? 'true':'false', onclick:()=>{S.coming = false; render();}}, 'לא הפעם')
+        h('div',{class:'seg' + (P.allowNoDish ? ' seg3' : '')},
+          h('button',{type:'button','aria-pressed': S.coming ? 'true':'false', onclick:()=>{S.coming = true; S.noDish = false; render();}}, 'כן, תזמינו לי 🙌'),
+          P.allowNoDish ? h('button',{type:'button','aria-pressed': (!S.coming && S.noDish) ? 'true':'false', onclick:()=>{S.coming = false; S.noDish = true; render();}}, 'מגיעה, בלי מנה') : '',
+          h('button',{type:'button','aria-pressed': (!S.coming && !S.noDish) ? 'true':'false', onclick:()=>{S.coming = false; S.noDish = false; render();}}, 'לא הפעם')
         )
       )
     );
@@ -371,11 +373,11 @@ function start(DATA){
     const keys = d ? new Set(d.g.map(k => G[k].key)) : null;
     const pick = (k, v) => (!keys || keys.has(k)) ? v : (Array.isArray(v) ? [] : '');
     const order = d ? {
-      coming: S.coming, dish: S.dish,
+      coming: S.coming, noDish: S.noDish, dish: S.dish,
       meat: pick('meat', S.meat), skewers: pick('skewers', S.skewers.filter(Boolean)), bread: pick('bread', S.bread),
       hot: pick('hot', S.hot), inside: pick('inside', S.inside), side: S.side, chips: pick('chips', S.chips), note: S.note
     } : {
-      coming: S.coming, dish: P.dish, meat: P.meat, skewers: P.skewers, bread: P.bread, hot: P.hot,
+      coming: S.coming, noDish: S.noDish, dish: P.dish, meat: P.meat, skewers: P.skewers, bread: P.bread, hot: P.hot,
       inside: P.inside, side: P.side, chips: P.chips, note: S.note
     };
     S.saving = true; bar(true);
